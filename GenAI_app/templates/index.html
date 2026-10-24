@@ -1,0 +1,178 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Task Management</title>
+    <link rel="stylesheet" href="{% static 'GenAI_app/styles.css' %}">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="{% url 'index' %}"><span class="brand-mark">A</span><span>AI Task Manager</span></a>
+        <div class="topbar-actions">
+            <form class="global-search" method="get" action="{% url 'index' %}" role="search">
+                <span>⌕</span>
+                <input type="search" name="q" value="{{ query }}" placeholder="Search tasks..." aria-label="Search tasks">
+                {% if selected_status %}<input type="hidden" name="status" value="{{ selected_status }}">{% endif %}
+                {% if selected_deadline %}<input type="hidden" name="deadline" value="{{ selected_deadline }}">{% endif %}
+            </form>
+            <a class="button primary-button compact-button" href="{% url 'add_page' %}">+ Add task</a>
+        </div>
+    </header>
+
+    <div class="app-layout">
+        <aside class="sidebar">
+            <p class="sidebar-label">Workspace</p>
+            <a class="sidebar-link active" href="{% url 'index' %}"><span>▦</span>Dashboard</a>
+            <a class="sidebar-link" href="#task-list"><span>✓</span>All tasks</a>
+            <a class="sidebar-link" href="#attention"><span>!</span>Needs attention{% if summary.attention %}<b>{{ summary.attention }}</b>{% endif %}</a>
+            <a class="sidebar-link" href="#task-list"><span>↺</span>Update history</a>
+            <div class="sidebar-bottom">
+                <p class="sidebar-label">Quick actions</p>
+                <a class="sidebar-link" href="{% url 'update_page' %}"><span>✎</span>Update a task</a>
+            </div>
+        </aside>
+
+        <main class="page-shell">
+            <div class="dashboard-header">
+                <div>
+                    <p class="eyebrow">Project overview · {% now "F j, Y" %}</p>
+                    <h1>Good day</h1>
+                    <p class="subtitle">Keep your work moving with clear priorities and AI-guided next steps.</p>
+                </div>
+                <a class="button primary-button" href="{% url 'add_page' %}">+ Create task</a>
+            </div>
+
+            {% if messages %}<div class="messages">{% for message in messages %}<div class="message {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+
+            <section class="summary-grid">
+                <div class="card summary-card summary-total"><span class="summary-label">Total tasks</span><strong>{{ summary.total }}</strong><small>Across your workspace</small></div>
+                <div class="card summary-card summary-green"><span class="summary-label">On track</span><strong>{{ summary.green }}</strong><small>Healthy progress</small></div>
+                <div class="card summary-card summary-amber"><span class="summary-label">Needs attention</span><strong>{{ summary.attention }}</strong><small>Amber or red tasks</small></div>
+                <div class="card summary-card summary-red"><span class="summary-label">Overdue</span><strong>{{ summary.overdue }}</strong><small>Past their deadline</small></div>
+                <div class="card summary-card"><span class="summary-label">Total budget</span><strong>{{ summary.budget|floatformat:0 }}</strong><small>Planned allocation</small></div>
+                <div class="card summary-card"><span class="summary-label">Budget spent</span><strong>{{ summary.spent|floatformat:0 }}</strong><small>Current usage</small></div>
+            </section>
+
+            <section class="ai-focus card" id="attention">
+                <div class="ai-focus-icon">✦</div>
+                <div class="ai-focus-content">
+                    <p class="eyebrow">AI focus</p>
+                    {% if attention_tasks %}
+                    <h2>{{ summary.attention }} task{{ summary.attention|pluralize }} need your attention</h2>
+                    <p>{% for task in attention_tasks %}<a href="{% url 'task_history' task.task_number %}">{{ task.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}. Review the recommendations below and update the next action.</p>
+                    {% else %}
+                    <h2>Your workspace is on track</h2>
+                    <p>No amber or red tasks are currently requiring attention.</p>
+                    {% endif %}
+                </div>
+                <a class="button secondary-button" href="#task-list">Review tasks</a>
+            </section>
+
+            <section class="assistant card" id="assistant">
+                <div class="assistant-heading">
+                    <div>
+                        <p class="eyebrow">AI assistant</p>
+                        <h2>Ask your workspace</h2>
+                        <p>Ask about tasks or say what you want to change. For example: “How many red tasks do I have?” or “Update task 3 spent budget to 8500.”</p>
+                    </div>
+                    <span class="assistant-spark">✦</span>
+                </div>
+                <div class="assistant-messages" id="assistant-messages">
+                    <div class="assistant-message assistant-message-ai">I can answer questions, add tasks, update task details, and delete tasks after confirmation.</div>
+                </div>
+                <form class="assistant-form" id="assistant-form">
+                    <input id="assistant-input" type="text" maxlength="1000" placeholder="Ask anything about your tasks..." autocomplete="off" required>
+                    <button class="button primary-button" type="submit">Ask AI</button>
+                </form>
+                <p class="assistant-status" id="assistant-status" aria-live="polite"></p>
+            </section>
+
+            <form class="filters card" id="filter-form" method="get">
+                <label class="filter-search">Search tasks<input type="search" name="q" value="{{ query }}" placeholder="Search by name or description" aria-label="Search by name or description"></label>
+                <label>Status<select name="status"><option value="">All statuses</option><option value="green" {% if selected_status == 'green' %}selected{% endif %}>Green</option><option value="amber" {% if selected_status == 'amber' %}selected{% endif %}>Amber</option><option value="red" {% if selected_status == 'red' %}selected{% endif %}>Red</option></select></label>
+                <label>Deadline<select name="deadline"><option value="">All deadlines</option><option value="upcoming" {% if selected_deadline == 'upcoming' %}selected{% endif %}>Next 7 days</option><option value="overdue" {% if selected_deadline == 'overdue' %}selected{% endif %}>Overdue</option></select></label>
+                <button class="button secondary-button" type="submit">Apply filters</button>
+            </form>
+
+            <section id="task-list">
+                <div class="section-heading"><div><p class="eyebrow">Your workspace</p><h2>All tasks <span>{{ summary.total }}</span></h2></div><a class="text-link" href="{% url 'update_page' %}">Update a task →</a></div>
+                <div class="task-grid">
+                    {% for task in tasks %}
+                    <article class="task-card card">
+                        <div class="task-card-top">
+                            <span class="status status-{{ task.status }}"><span class="status-dot status-dot-{{ task.status }}" aria-hidden="true"></span>{{ task.status }}</span>
+                            <span class="task-number">#{{ task.task_number }}</span>
+                        </div>
+                        <a class="task-name" href="{% url 'task_history' task.task_number %}">{{ task.name }}</a>
+                        {% if task.description %}<p class="task-description">{{ task.description }}</p>{% endif %}
+                        <div class="task-meta"><span>Deadline <strong>{{ task.deadline_date }}</strong></span><span>Budget <strong>{{ task.spent_budget }} / {{ task.original_budget }}</strong></span></div>
+                        <div class="budget-track budget-{{ task.status }}"><span style="width: {{ task.budget_percent }}%"></span></div>
+                        <div class="budget-caption"><span>{{ task.budget_percent }}% used</span><span>Started {{ task.starting_date }}</span></div>
+                        <div class="ai-copy">
+                            <strong>AI recommendation</strong>
+                            <p>{{ task.recommendation|default:"No recommendation yet." }}</p>
+                            {% if task.risks %}<strong>Risks</strong><ul>{% for risk in task.risks %}<li>{{ risk }}</li>{% endfor %}</ul>{% endif %}
+                            {% if task.recommended_actions %}<strong>Recommended actions</strong><ol>{% for action in task.recommended_actions %}<li>{{ action }}</li>{% endfor %}</ol>{% endif %}
+                        </div>
+                        <div class="task-actions">
+                            <a class="button secondary-button compact-button" href="{% url 'task_history' task.task_number %}">View details</a>
+                            <a class="text-link" href="{% url 'update_page' %}?task_number={{ task.task_number }}">Update →</a>
+                            <form method="post" action="{% url 'delete_task' task.task_number %}" onsubmit="return confirm('Delete task {{ task.task_number }}: {{ task.name|escapejs }}? This cannot be undone.');">
+                                {% csrf_token %}
+                                <button class="delete-button" type="submit">Delete</button>
+                            </form>
+                        </div>
+                    </article>
+                    {% empty %}<div class="card empty-state">No tasks found. <a class="text-link" href="{% url 'add_page' %}">Create your first task →</a></div>{% endfor %}
+                </div>
+            </section>
+        </main>
+    </div>
+    <script>
+        const assistantForm = document.getElementById('assistant-form');
+        const assistantInput = document.getElementById('assistant-input');
+        const assistantMessages = document.getElementById('assistant-messages');
+        const assistantStatus = document.getElementById('assistant-status');
+        let pendingDelete = null;
+
+        function csrfToken() {
+            return document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1] || '';
+        }
+        function addAssistantMessage(text, type) {
+            const message = document.createElement('div');
+            message.className = `assistant-message assistant-message-${type}`;
+            message.textContent = text;
+            assistantMessages.appendChild(message);
+            assistantMessages.scrollTop = assistantMessages.scrollHeight;
+        }
+        assistantForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const message = assistantInput.value.trim();
+            if (!message) return;
+            addAssistantMessage(message, 'user');
+            assistantInput.value = '';
+            assistantStatus.textContent = 'AI is thinking...';
+            try {
+                const response = await fetch("{% url 'ai_assistant' %}", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken()},
+                    body: JSON.stringify({message, confirm: pendingDelete && /^(yes|confirm|delete)$/i.test(message)})
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Assistant request failed.');
+                addAssistantMessage(data.reply, 'ai');
+                pendingDelete = data.action === 'confirm_delete' ? data.task_number : null;
+                if (data.action !== 'answer' && data.action !== 'confirm_delete') {
+                    setTimeout(() => window.location.reload(), 700);
+                }
+            } catch (error) {
+                addAssistantMessage(error.message, 'error');
+            } finally {
+                assistantStatus.textContent = '';
+            }
+        });
+    </script>
+</body>
+</html>

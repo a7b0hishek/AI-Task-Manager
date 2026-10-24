@@ -1,0 +1,11 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Task history</title><link rel="stylesheet" href="{% static 'GenAI_app/styles.css' %}"></head>
+<body>
+<header class="topbar"><a class="brand" href="{% url 'index' %}"><span class="brand-mark">A</span> AI-Powered Task Management</a><a class="topbar-link" href="{% url 'index' %}">Back to dashboard</a></header>
+<main class="page-shell narrow"><section class="page-heading"><p class="eyebrow">Audit trail</p><h1>{{ task.name }}</h1><p>{{ task.description|default:"No description provided." }}</p></section>
+<section class="card history-list">
+{% for entry in history %}<article class="history-entry"><strong>{{ entry.action|capfirst }}</strong><time>{{ entry.created_at }}</time><pre>{{ entry.changes }}</pre></article>{% empty %}<p>No history recorded yet.</p>{% endfor %}
+</section></main>
+</body></html>

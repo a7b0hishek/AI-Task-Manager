@@ -1,0 +1,107 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add task | AI-Powered Task Management</title>
+    <link rel="stylesheet" href="{% static 'GenAI_app/styles.css' %}">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="{% url 'index' %}"><span class="brand-mark">A</span> AI-Powered Task Management</a>
+        <a class="topbar-link" href="{% url 'index' %}">Back to dashboard</a>
+    </header>
+
+    <main class="page-shell narrow">
+        <section class="page-heading">
+            <p class="eyebrow">Project planning</p>
+            <h1>Add a task</h1>
+            <p>Create a task with a budget and timeline. Its RAG status is calculated automatically.</p>
+        </section>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form class="card task-form" action="{% url 'add_task' %}" method="post" id="add-task-form">
+            {% csrf_token %}
+            <div class="form-grid">
+                <label>
+                    <span>Task name</span>
+                    {{ form.name }}
+                    {{ form.name.errors }}
+                </label>
+                <label>
+                    <span>Description</span>
+                    {{ form.description }}
+                    {{ form.description.errors }}
+                </label>
+            </div>
+            <div class="form-grid">
+                <label>
+                    <span>Original budget</span>
+                    {{ form.original_budget }}
+                    {{ form.original_budget.errors }}
+                </label>
+                <label>
+                    <span>Spent budget</span>
+                    {{ form.spent_budget }}
+                    {{ form.spent_budget.errors }}
+                </label>
+            </div>
+            <div class="form-grid">
+                <label>
+                    <span>Starting date</span>
+                    {{ form.starting_date }}
+                    {{ form.starting_date.errors }}
+                </label>
+                <label>
+                    <span>Deadline date</span>
+                    {{ form.deadline_date }}
+                    {{ form.deadline_date.errors }}
+                </label>
+            </div>
+            <label>
+                <span>Recommendation <small>(optional)</small></span>
+                {{ form.recommendation }}
+                {{ form.recommendation.errors }}
+            </label>
+            {{ form.non_field_errors }}
+            <button class="button primary-button" type="submit" id="add-submit-button">
+                <span>Add task</span>
+                <span class="button-spinner" aria-hidden="true"></span>
+            </button>
+            <p class="form-hint">Red means over budget, amber means 80% or more spent, and green means under 80%.</p>
+        </form>
+    </main>
+
+    <div class="loading-screen" id="add-loading-screen" hidden>
+        <div class="loading-card">
+            <div class="loader"></div>
+            <h2>Adding task</h2>
+            <ol class="loading-steps">
+                <li class="active">Checking task details</li>
+                <li>Creating task</li>
+                <li>Refreshing dashboard</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('add-task-form').addEventListener('submit', () => {
+            document.getElementById('add-submit-button').disabled = true;
+            document.getElementById('add-loading-screen').hidden = false;
+            const steps = [...document.querySelectorAll('.loading-steps li')];
+            steps.forEach((step, index) => setTimeout(() => {
+                steps.forEach(item => item.classList.remove('active'));
+                step.classList.add('active');
+            }, index * 700));
+        });
+    </script>
+</body>
+</html>

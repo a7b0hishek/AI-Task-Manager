@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update task | AI-Powered Task Management</title>
+    <link rel="stylesheet" href="{% static 'GenAI_app/styles.css' %}">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="{% url 'index' %}"><span class="brand-mark">A</span> AI-Powered Task Management</a>
+        <a class="topbar-link" href="{% url 'index' %}">Back to dashboard</a>
+    </header>
+
+    <main class="page-shell narrow">
+        <section class="page-heading">
+            <p class="eyebrow">Task management</p>
+            <h1>Update a task</h1>
+            <p>Change the fields you need. Use Groq only when you want a new AI recommendation.</p>
+        </section>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form class="card task-form" action="{% url 'update_status' %}" method="post" id="task-update-form">
+            {% csrf_token %}
+            <div class="form-grid">
+                <label>
+                    <span>Task number</span>
+                    {{ form.task_number }}
+                    {{ form.task_number.errors }}
+                </label>
+                <label>
+                    <span>Spent budget</span>
+                    {{ form.spent_budget }}
+                    {{ form.spent_budget.errors }}
+                </label>
+            </div>
+
+            <div class="automatic-status">
+                <span class="status-dot status-dot-amber"></span>
+                <div>
+                    <strong>RAG status is automatic</strong>
+                    <p>After saving, the dashboard dot updates automatically from budget usage: over budget is red, 80%+ spent is amber, otherwise green.</p>
+                </div>
+            </div>
+
+            <label>
+                <span>Recommendation</span>
+                {{ form.recommendation }}
+                {{ form.recommendation.errors }}
+            </label>
+            {{ form.non_field_errors }}
+
+            <label class="check-row">
+                {{ form.generate_recommendation }}
+                <span>Generate a new recommendation with Groq using the updated budget</span>
+            </label>
+
+            <button class="button primary-button" type="submit" id="submit-button">
+                <span class="button-label">Save task changes</span>
+                <span class="button-spinner" aria-hidden="true"></span>
+            </button>
+            <p class="form-hint">Change the spent budget, add a recommendation, or request a new AI recommendation before saving.</p>
+        </form>
+    </main>
+
+    <div class="loading-screen" id="loading-screen" hidden>
+        <div class="loading-card">
+            <div class="loader"></div>
+            <h2>Updating task</h2>
+            <ol class="loading-steps">
+                <li class="active">Checking your changes</li>
+                <li>Saving task details</li>
+                <li>Refreshing dashboard</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('task-update-form');
+        const loadingScreen = document.getElementById('loading-screen');
+        const submitButton = document.getElementById('submit-button');
+        const steps = [...document.querySelectorAll('.loading-steps li')];
+
+        form.addEventListener('submit', () => {
+            submitButton.disabled = true;
+            loadingScreen.hidden = false;
+            steps.forEach((step, index) => {
+                setTimeout(() => {
+                    steps.forEach(item => item.classList.remove('active'));
+                    step.classList.add('active');
+                }, index * 700);
+            });
+        });
+    </script>
+</body>
+</html>
