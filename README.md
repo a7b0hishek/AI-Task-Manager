@@ -210,6 +210,16 @@ DATABASE_URL=postgresql://user:password@host:5432/taskmanager
 When `DATABASE_URL` is not set, local SQLite is used. Do not use SQLite for a
 multi-process production deployment.
 
+For Render, use these commands from the repository root:
+
+```bash
+# Build command
+pip install -r requirements.txt && PYTHONPATH=. python RAG_app/manage.py collectstatic --noinput && PYTHONPATH=. python RAG_app/manage.py migrate
+
+# Start command
+PYTHONPATH=. gunicorn --chdir RAG_app system_config.wsgi:application --bind 0.0.0.0:$PORT
+```
+
 Prepare the production database and static files:
 
 ```bash
@@ -221,13 +231,13 @@ PYTHONPATH=. .venv/bin/python RAG_app/manage.py check --deploy
 Run with Gunicorn:
 
 ```bash
-gunicorn --chdir RAG_app system_config.wsgi:application -c gunicorn.conf.py
+PYTHONPATH=. gunicorn --chdir RAG_app system_config.wsgi:application -c gunicorn.conf.py
 ```
 
 For hosting platforms that provide a `PORT` environment variable:
 
 ```bash
-gunicorn --chdir RAG_app system_config.wsgi:application --bind 0.0.0.0:$PORT
+PYTHONPATH=. gunicorn --chdir RAG_app system_config.wsgi:application --bind 0.0.0.0:$PORT
 ```
 
 Create an administrator for Django admin:

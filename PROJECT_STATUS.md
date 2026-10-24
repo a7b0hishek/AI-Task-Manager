@@ -234,16 +234,23 @@ PYTHONPATH=. .venv/bin/python RAG_app/manage.py collectstatic --noinput
 PYTHONPATH=. .venv/bin/python RAG_app/manage.py check --deploy
 ```
 
+Render commands:
+
+```bash
+pip install -r requirements.txt && PYTHONPATH=. python RAG_app/manage.py collectstatic --noinput && PYTHONPATH=. python RAG_app/manage.py migrate
+PYTHONPATH=. gunicorn --chdir RAG_app system_config.wsgi:application --bind 0.0.0.0:$PORT
+```
+
 Run Gunicorn:
 
 ```bash
-gunicorn --chdir RAG_app system_config.wsgi:application -c gunicorn.conf.py
+PYTHONPATH=. gunicorn --chdir RAG_app system_config.wsgi:application -c gunicorn.conf.py
 ```
 
 For hosting platforms that provide `PORT`:
 
 ```bash
-gunicorn --chdir RAG_app system_config.wsgi:application --bind 0.0.0.0:$PORT
+PYTHONPATH=. gunicorn --chdir RAG_app system_config.wsgi:application --bind 0.0.0.0:$PORT
 ```
 
 ## Important security notes
