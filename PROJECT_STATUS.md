@@ -6,6 +6,12 @@ The application is a working Django-based AI task manager. The dashboard,
 task creation, task updates, task deletion, search, AI assistant, history,
 and production deployment configuration are implemented.
 
+The local Git merge conflict in `.gitignore` has been resolved. Useful ignore
+rules from both local and remote versions are preserved. Generated Python
+bytecode, the local SQLite database, and static build output are excluded from
+version control. The resolved merge was pushed to `origin/main` in commit
+`32017af`.
+
 ## Status-document maintenance
 
 Update this file after every project change that affects application behavior,
@@ -20,9 +26,12 @@ Latest local validation:
 - Django system checks: passed.
 - Production `check --deploy`: passed with production environment variables.
 - Application test suite: **13 tests passed**.
+- Migration plan: all migrations applied in the local development database.
 - Static files: collected successfully with WhiteNoise.
 - WSGI application: imports successfully.
 - Gunicorn smoke test: returned HTTP 200.
+- GitHub `origin/main`: contains the complete project structure and deployment
+  files.
 
 ## Technology stack
 
