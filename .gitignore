@@ -1,3 +1,69 @@
+# Environment and secrets
 .env
-.DS_Store
+.env.*
+!.env.example
+*.pem
+*.key
+*credentials*
+*secret*
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Django and local databases
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
 RAG_app/staticfiles/
+
+# macOS and editor files
+.DS_Store
+.vscode/
+.idea/
+
+# Python packaging and build output
+.Python
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
+MANIFEST
+wheels/
+
+# Test and tooling output
+*.py.cover
+coverage.xml
+nosetests.xml
+.tox/
+.nox/
+.hypothesis/
+.cache/
+pip-wheel-metadata/
+
+# Other local tooling
+.pdm-python
+.pdm-build/
+.pixi/
+.ipynb_checkpoints/
+tempCodeRunnerFile.py
+cython_debug/
